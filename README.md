@@ -82,9 +82,9 @@ npx retrieval-tester --cid Qm... --endpoints https://dweb.link https://ipfs.io -
 ## License
 
 MIT OR Apache-2.0 (see [LICENSE](https://github.com/Supercoolkayy/retrieval-tester/blob/main/LICENSE))  
-© Abdulkareem Oyeneye (supercoolkay)
+© Abdulkareem Oyeneye (Dapps over Apps)
 
-## 🚀 Beta Testing & Feedback
+## Beta Testing & Feedback
 
 This CLI is currently in **beta**.  
 We welcome your feedback, bug reports, and suggestions!
