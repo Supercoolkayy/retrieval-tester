@@ -1,5 +1,5 @@
 import axios from "axios";
-import { TestResult, Config } from "./types";
+import { TestResult, Config } from "./types.js";
 import { performance } from "perf_hooks";
 import * as https from "https";
 import * as http from "http";

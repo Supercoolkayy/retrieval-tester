@@ -1,3 +1,2 @@
-import { TestResult } from "./types";
+import { TestResult } from "./types.js";
 export declare function formatResults(results: TestResult[], format: "text" | "json"): string;
-//# sourceMappingURL=formatter.d.ts.map

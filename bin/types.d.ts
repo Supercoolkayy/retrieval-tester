@@ -28,4 +28,3 @@ export interface Config {
     timeout: number;
     logFile?: string;
 }
-//# sourceMappingURL=types.d.ts.map

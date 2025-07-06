@@ -1,67 +1,89 @@
 #!/usr/bin/env node
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const yargs_1 = __importDefault(require("yargs"));
-const helpers_1 = require("yargs/helpers");
-const chalk_1 = __importDefault(require("chalk"));
-const tester_1 = require("./tester");
-const cli = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+import chalk from "chalk";
+import { testRetrieval, defaultEndpoints } from "./tester.js";
+// Spinner utility
+function createSpinner(msg) {
+    const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+    let i = 0;
+    let timer;
+    return {
+        start() {
+            process.stdout.write(chalk.cyanBright(frames[i] + " " + msg));
+            timer = setInterval(() => {
+                i = (i + 1) % frames.length;
+                process.stdout.write("\r" + chalk.cyanBright(frames[i] + " " + msg));
+            }, 80);
+        },
+        stop(finalMsg) {
+            clearInterval(timer);
+            process.stdout.write("\r" + (finalMsg || "") + "\n");
+        },
+    };
+}
+// Welcome banner
+function printWelcome() {
+    console.log(chalk.bgCyanBright.bold("\n Filecoin Retrieval Tester ") +
+        chalk.cyanBright("\nA CLI tool to benchmark Filecoin/IPFS HTTP gateways and storage providers.\n") +
+        chalk.white("Test your CID across multiple endpoints, measure latency, DNS/TCP times, and reliability.\n") +
+        chalk.gray("Run with --help for options and examples.\n"));
+}
+// Add middleware to always show the banner first
+let bannerPrinted = false;
+const cli = yargs(hideBin(process.argv))
+    .middleware([
+    () => {
+        if (!bannerPrinted) {
+            printWelcome();
+            bannerPrinted = true;
+        }
+    },
+])
     .scriptName("retrieval-tester")
-    .usage(chalk_1.default.cyanBright("\nUsage:") +
+    .usage(chalk.cyanBright("\nUsage:") +
     `\n  $ retrieval-tester --cid <cid> [options]\n`)
     .option("cid", {
     alias: "c",
     type: "string",
-    describe: chalk_1.default.yellow("Filecoin CID to test"),
+    describe: chalk.yellow("Filecoin CID to test"),
     demandOption: true,
 })
     .option("endpoints", {
     alias: "e",
     type: "array",
-    describe: chalk_1.default.yellow("List of endpoints to test"),
-    default: tester_1.defaultEndpoints,
+    describe: chalk.yellow("List of endpoints to test"),
+    default: defaultEndpoints,
 })
     .option("format", {
     alias: "f",
     type: "string",
-    describe: chalk_1.default.yellow("Output format: text or json"),
+    describe: chalk.yellow("Output format: text or json"),
     default: "text",
     choices: ["text", "json"],
 })
     .option("concurrency", {
     alias: "n",
     type: "number",
-    describe: chalk_1.default.yellow("Number of concurrent requests"),
+    describe: chalk.yellow("Number of concurrent requests"),
     default: 4,
 })
     .option("retries", {
     alias: "r",
     type: "number",
-    describe: chalk_1.default.yellow("Number of retries per endpoint"),
+    describe: chalk.yellow("Number of retries per endpoint"),
     default: 2,
 })
     .option("timeout", {
     alias: "t",
     type: "number",
-    describe: chalk_1.default.yellow("Timeout per request in ms"),
+    describe: chalk.yellow("Timeout per request in ms"),
     default: 7000,
 })
     .option("verbose", {
     alias: "v",
     type: "boolean",
-    describe: chalk_1.default.yellow("Enable verbose output"),
+    describe: chalk.yellow("Enable verbose output"),
     default: false,
 })
     .version() // Use yargs built-in version
@@ -85,15 +107,18 @@ const cli = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
     .alias("help", "h")
     .wrap(Math.min(120, process.stdout.columns || 120))
     .strict();
-cli.command("$0", chalk_1.default.magenta("Test Filecoin retrieval performance"), () => { }, (argv) => __awaiter(void 0, void 0, void 0, function* () {
+cli.command("$0", chalk.magenta("Test Filecoin retrieval performance"), () => { }, async (argv) => {
+    // Welcome banner is handled by middleware
     // Validate CID
     if (!argv.cid || typeof argv.cid !== "string" || argv.cid.length < 10) {
-        console.error(chalk_1.default.redBright("❌ Error: Please provide a valid CID with --cid <cid>"));
+        console.error(chalk.bgRed.white.bold(" ERROR ") +
+            chalk.redBright(" Please provide a valid CID with --cid <cid>\n"));
         process.exit(1);
     }
     // Validate endpoints
     if (!Array.isArray(argv.endpoints) || argv.endpoints.length < 1) {
-        console.error(chalk_1.default.redBright("❌ Error: Please provide at least one endpoint with --endpoints"));
+        console.error(chalk.bgRed.white.bold(" ERROR ") +
+            chalk.redBright(" Please provide at least one endpoint with --endpoints\n"));
         process.exit(1);
     }
     // Validate concurrency, retries, timeout
@@ -101,28 +126,43 @@ cli.command("$0", chalk_1.default.magenta("Test Filecoin retrieval performance")
     const retries = argv.retries;
     const timeout = argv.timeout;
     if (isNaN(concurrency) || concurrency < 1) {
-        console.error(chalk_1.default.redBright("❌ Error: --concurrency must be a positive integer"));
+        console.error(chalk.bgRed.white.bold(" ERROR ") +
+            chalk.redBright(" --concurrency must be a positive integer\n"));
         process.exit(1);
     }
     if (isNaN(retries) || retries < 0) {
-        console.error(chalk_1.default.redBright("❌ Error: --retries must be a non-negative integer"));
+        console.error(chalk.bgRed.white.bold(" ERROR ") +
+            chalk.redBright(" --retries must be a non-negative integer\n"));
         process.exit(1);
     }
     if (isNaN(timeout) || timeout < 1000) {
-        console.error(chalk_1.default.redBright("❌ Error: --timeout must be at least 1000 ms"));
+        console.error(chalk.bgRed.white.bold(" ERROR ") +
+            chalk.redBright(" --timeout must be at least 1000 ms\n"));
         process.exit(1);
     }
-    console.log(chalk_1.default.greenBright(`🚀 Testing CID: ${chalk_1.default.bold(argv.cid)}\nEndpoints: ${chalk_1.default.bold(argv.endpoints.length)}, Concurrency: ${chalk_1.default.bold(concurrency)}, Retries: ${chalk_1.default.bold(retries)}, Timeout: ${chalk_1.default.bold(timeout)}ms`));
+    console.log(chalk.greenBright(`🚀 Testing CID: ${chalk.bold(argv.cid)}\nEndpoints: ${chalk.bold(argv.endpoints.length)}, Concurrency: ${chalk.bold(concurrency)}, Retries: ${chalk.bold(retries)}, Timeout: ${chalk.bold(timeout)}ms`));
     if (argv.verbose) {
-        console.log(chalk_1.default.gray(`Endpoints: ${argv.endpoints
-            .map((ep) => chalk_1.default.underline(ep))
+        console.log(chalk.gray(`Endpoints: ${argv.endpoints
+            .map((ep) => chalk.underline(ep))
             .join(", ")}`));
     }
-    const results = yield (0, tester_1.testRetrieval)(argv.cid, argv.endpoints, {
-        concurrency,
-        retries,
-        timeout,
-    });
+    // Loading spinner
+    const spinner = createSpinner("Running retrieval tests...");
+    spinner.start();
+    let results;
+    try {
+        results = await testRetrieval(argv.cid, argv.endpoints, {
+            concurrency,
+            retries,
+            timeout,
+        });
+        spinner.stop(chalk.greenBright("✔ Retrieval tests complete!\n"));
+    }
+    catch (err) {
+        spinner.stop(chalk.bgRed.white.bold(" ERROR ") +
+            chalk.redBright(" " + (err.message || "Unknown error")));
+        process.exit(1);
+    }
     if (argv.format === "json") {
         // Show all fields in JSON output
         console.log(JSON.stringify(results, null, 2));
@@ -139,74 +179,103 @@ cli.command("$0", chalk_1.default.magenta("Test Filecoin retrieval performance")
             "Attempts",
             "Error",
         ];
-        const rows = results.map((r) => {
-            var _a;
-            return [
-                r.endpoint,
-                r.endpointType || "Gateway",
-                r.status,
-                r.latency !== undefined ? `${r.latency.toFixed(1)}ms` : "-",
-                r.dnsTime !== undefined ? `${r.dnsTime.toFixed(1)}` : "-",
-                r.tcpTime !== undefined ? `${r.tcpTime.toFixed(1)}` : "-",
-                (_a = r.attempts) !== null && _a !== void 0 ? _a : "-",
-                r.status === "Failed" ? r.error || "-" : "",
-            ];
-        });
+        const rows = results.map((r) => [
+            r.endpoint,
+            r.endpointType || "Gateway",
+            r.status,
+            r.latency !== undefined ? `${r.latency.toFixed(1)}ms` : "-",
+            r.dnsTime !== undefined ? `${r.dnsTime.toFixed(1)}` : "-",
+            r.tcpTime !== undefined ? `${r.tcpTime.toFixed(1)}` : "-",
+            r.attempts ?? "-",
+            r.status === "Failed" ? r.error || "-" : "",
+        ]);
         // Print table
         const pad = (str, len) => str.padEnd(len, " ");
         const colWidths = [28, 10, 9, 10, 9, 9, 8, 20];
         const printRow = (row, colorFn = (x) => x) => row
             .map((cell, i) => pad(cell, colWidths[i]))
             .join(" ")
-            .replace(/Success/, chalk_1.default.green("Success"))
-            .replace(/Failed/, chalk_1.default.red("Failed"));
-        console.log(chalk_1.default.cyanBright("\n" +
-            printRow(header, chalk_1.default.bold) +
+            .replace(/Success/, chalk.green("Success"))
+            .replace(/Failed/, chalk.red("Failed"));
+        console.log(chalk.cyanBright("\n" +
+            printRow(header, chalk.bold) +
             "\n" +
             "-".repeat(colWidths.reduce((a, b) => a + b, 0) + header.length - 1)));
         rows.forEach((row) => {
-            console.log(printRow(row.map(String)));
+            // Color-code slow endpoints
+            const latency = parseFloat(String(row[3] || "").replace("ms", "")) || 0;
+            const dns = parseFloat(String(row[4])) || 0;
+            const tcp = parseFloat(String(row[5])) || 0;
+            let color = (x) => x;
+            if (latency > 1000 || dns > 500 || tcp > 500)
+                color = chalk.yellow;
+            if (latency > 3000 || dns > 1500 || tcp > 1500)
+                color = chalk.redBright;
+            console.log(color(printRow(row.map(String))));
         });
         // Optionally, show verbose per-endpoint details
         if (argv.verbose) {
             results.forEach((r) => {
-                var _a;
-                console.log(chalk_1.default.gray(`\n[${r.endpointType || "Gateway"}] ${r.endpoint}\n  DNS: ${r.dnsTime !== undefined ? r.dnsTime.toFixed(1) + "ms" : "-"}, TCP: ${r.tcpTime !== undefined ? r.tcpTime.toFixed(1) + "ms" : "-"}, Latency: ${r.latency !== undefined ? r.latency.toFixed(1) + "ms" : "-"}, Attempts: ${(_a = r.attempts) !== null && _a !== void 0 ? _a : "-"}${r.status === "Failed" && r.error ? `, Error: ${r.error}` : ""}`));
+                console.log(chalk.gray(`\n[${r.endpointType || "Gateway"}] ${r.endpoint}\n  DNS: ${r.dnsTime !== undefined ? r.dnsTime.toFixed(1) + "ms" : "-"}, TCP: ${r.tcpTime !== undefined ? r.tcpTime.toFixed(1) + "ms" : "-"}, Latency: ${r.latency !== undefined ? r.latency.toFixed(1) + "ms" : "-"}, Attempts: ${r.attempts ?? "-"}${r.status === "Failed" && r.error ? `, Error: ${r.error}` : ""}`));
             });
         }
     }
-    // Print summary in text mode
+    // Print summary in text mode, including DNS/TCP stats
     if (argv.format === "text") {
         const latencies = results
             .filter((r) => r.latency !== undefined)
             .map((r) => r.latency);
-        const avgLatency = latencies.length
-            ? latencies.reduce((a, b) => a + b, 0) / latencies.length
-            : 0;
-        const minLatency = latencies.length ? Math.min(...latencies) : 0;
-        const maxLatency = latencies.length ? Math.max(...latencies) : 0;
-        const sorted = [...latencies].sort((a, b) => a - b);
-        const medianLatency = latencies.length
-            ? sorted.length % 2 === 0
+        const dnsTimes = results
+            .filter((r) => r.dnsTime !== undefined)
+            .map((r) => r.dnsTime);
+        const tcpTimes = results
+            .filter((r) => r.tcpTime !== undefined)
+            .map((r) => r.tcpTime);
+        function stats(arr) {
+            if (!arr.length)
+                return { avg: 0, min: 0, max: 0, median: 0 };
+            const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+            const min = Math.min(...arr);
+            const max = Math.max(...arr);
+            const sorted = [...arr].sort((a, b) => a - b);
+            const median = sorted.length % 2 === 0
                 ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
-                : sorted[Math.floor(sorted.length / 2)]
-            : 0;
+                : sorted[Math.floor(sorted.length / 2)];
+            return { avg, min, max, median };
+        }
+        const latencyStats = stats(latencies);
+        const dnsStats = stats(dnsTimes);
+        const tcpStats = stats(tcpTimes);
+        // ASCII bar visualization
+        function bar(val, max, width = 20) {
+            const len = max ? Math.round((val / max) * width) : 0;
+            return (chalk.cyanBright("▇".repeat(len)) +
+                chalk.gray(".".repeat(width - len)));
+        }
         const summary = {
             total: results.length,
             successes: results.filter((r) => r.status === "Success").length,
             failures: results.filter((r) => r.status === "Failed").length,
-            avgLatency,
-            minLatency,
-            maxLatency,
-            medianLatency,
+            avgLatency: latencyStats.avg,
+            minLatency: latencyStats.min,
+            maxLatency: latencyStats.max,
+            medianLatency: latencyStats.median,
+            avgDNS: dnsStats.avg,
+            minDNS: dnsStats.min,
+            maxDNS: dnsStats.max,
+            medianDNS: dnsStats.median,
+            avgTCP: tcpStats.avg,
+            minTCP: tcpStats.min,
+            maxTCP: tcpStats.max,
+            medianTCP: tcpStats.median,
             successRate: results.length
                 ? (results.filter((r) => r.status === "Success").length /
                     results.length) *
                     100
                 : 0,
         };
-        console.log(chalk_1.default.cyanBright(`\nSummary:\n  Total Tests: ${chalk_1.default.bold(summary.total)}\n  Successes: ${summary.successes}\n  Failures: ${summary.failures}\n  Success Rate: ${chalk_1.default.bold(summary.successRate.toFixed(1))}%\n  Avg Latency: ${chalk_1.default.bold(summary.avgLatency.toFixed(2))}ms\n  Min Latency: ${chalk_1.default.bold(summary.minLatency.toFixed(2))}ms\n  Max Latency: ${chalk_1.default.bold(summary.maxLatency.toFixed(2))}ms\n  Median Latency: ${chalk_1.default.bold(summary.medianLatency.toFixed(2))}ms`));
+        console.log(chalk.cyanBright(`\nSummary:\n  Total Tests: ${chalk.bold(summary.total)}\n  Successes: ${summary.successes}\n  Failures: ${summary.failures}\n  Success Rate: ${chalk.bold(summary.successRate.toFixed(1))}%\n  Avg Latency: ${chalk.bold(summary.avgLatency.toFixed(2))}ms ${bar(summary.avgLatency, summary.maxLatency)}\n  Min Latency: ${chalk.bold(summary.minLatency.toFixed(2))}ms\n  Max Latency: ${chalk.bold(summary.maxLatency.toFixed(2))}ms\n  Median Latency: ${chalk.bold(summary.medianLatency.toFixed(2))}ms\n  Avg DNS: ${chalk.bold(summary.avgDNS.toFixed(2))}ms ${bar(summary.avgDNS, summary.maxDNS)}\n  Min DNS: ${chalk.bold(summary.minDNS.toFixed(2))}ms\n  Max DNS: ${chalk.bold(summary.maxDNS.toFixed(2))}ms\n  Median DNS: ${chalk.bold(summary.medianDNS.toFixed(2))}ms\n  Avg TCP: ${chalk.bold(summary.avgTCP.toFixed(2))}ms ${bar(summary.avgTCP, summary.maxTCP)}\n  Min TCP: ${chalk.bold(summary.minTCP.toFixed(2))}ms\n  Max TCP: ${chalk.bold(summary.maxTCP.toFixed(2))}ms\n  Median TCP: ${chalk.bold(summary.medianTCP.toFixed(2))}ms`));
     }
-}));
+});
 cli.parse();
 //# sourceMappingURL=cli.js.map

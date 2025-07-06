@@ -1,4 +1,4 @@
-import { TestResult } from "./types";
+import { TestResult } from "./types.js";
 
 export function formatResults(
   results: TestResult[],

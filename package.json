@@ -1,6 +1,6 @@
 {
   "name": "retrieval-tester",
-  "version": "1.0.9",
+  "version": "1.0.19",
   "description": "CLI tool to test Filecoin retrieval performance",
   "main": "bin/index.js",
   "bin": {
@@ -13,11 +13,12 @@
     "test": "node test/basic.test.js",
     "test:regression": "node test/regression.test.js"
   },
+  "type": "module",
   "dependencies": {
     "axios": "^1.4.0",
+    "yargs": "^17.7.2",
     "chalk": "^5.3.0",
-    "commander": "^11.0.0",
-    "retrieval-tester": "^1.0.3"
+    "commander": "^11.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.4.2",

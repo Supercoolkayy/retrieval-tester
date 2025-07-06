@@ -2,8 +2,8 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import chalk from "chalk";
-import { testRetrieval, defaultEndpoints } from "./tester";
-import { formatResults } from "./formatter";
+import { testRetrieval, defaultEndpoints } from "./tester.js";
+import { formatResults } from "./formatter.js";
 
 // Spinner utility
 function createSpinner(msg: string) {
@@ -39,7 +39,18 @@ function printWelcome() {
   );
 }
 
+// Add middleware to always show the banner first
+let bannerPrinted = false;
+
 const cli = yargs(hideBin(process.argv))
+  .middleware([
+    () => {
+      if (!bannerPrinted) {
+        printWelcome();
+        bannerPrinted = true;
+      }
+    },
+  ])
   .scriptName("retrieval-tester")
   .usage(
     chalk.cyanBright("\nUsage:") +
@@ -115,7 +126,7 @@ cli.command(
   chalk.magenta("Test Filecoin retrieval performance"),
   () => {},
   async (argv) => {
-    printWelcome();
+    // Welcome banner is handled by middleware
 
     // Validate CID
     if (!argv.cid || typeof argv.cid !== "string" || argv.cid.length < 10) {
@@ -221,7 +232,7 @@ cli.command(
         "Attempts",
         "Error",
       ];
-      const rows = results.map((r) => [
+      const rows = results.map((r: any) => [
         r.endpoint,
         r.endpointType || "Gateway",
         r.status,
@@ -249,7 +260,7 @@ cli.command(
             "-".repeat(colWidths.reduce((a, b) => a + b, 0) + header.length - 1)
         )
       );
-      rows.forEach((row) => {
+      rows.forEach((row: any) => {
         // Color-code slow endpoints
         const latency = parseFloat(String(row[3] || "").replace("ms", "")) || 0;
         const dns = parseFloat(String(row[4])) || 0;
@@ -262,7 +273,7 @@ cli.command(
 
       // Optionally, show verbose per-endpoint details
       if (argv.verbose) {
-        results.forEach((r) => {
+        results.forEach((r: any) => {
           console.log(
             chalk.gray(
               `\n[${r.endpointType || "Gateway"}] ${r.endpoint}\n  DNS: ${
@@ -283,14 +294,14 @@ cli.command(
     // Print summary in text mode, including DNS/TCP stats
     if (argv.format === "text") {
       const latencies = results
-        .filter((r) => r.latency !== undefined)
-        .map((r) => r.latency!);
+        .filter((r: any) => r.latency !== undefined)
+        .map((r: any) => r.latency!);
       const dnsTimes = results
-        .filter((r) => r.dnsTime !== undefined)
-        .map((r) => r.dnsTime!);
+        .filter((r: any) => r.dnsTime !== undefined)
+        .map((r: any) => r.dnsTime!);
       const tcpTimes = results
-        .filter((r) => r.tcpTime !== undefined)
-        .map((r) => r.tcpTime!);
+        .filter((r: any) => r.tcpTime !== undefined)
+        .map((r: any) => r.tcpTime!);
 
       function stats(arr: number[]) {
         if (!arr.length) return { avg: 0, min: 0, max: 0, median: 0 };
@@ -320,8 +331,8 @@ cli.command(
 
       const summary = {
         total: results.length,
-        successes: results.filter((r) => r.status === "Success").length,
-        failures: results.filter((r) => r.status === "Failed").length,
+        successes: results.filter((r: any) => r.status === "Success").length,
+        failures: results.filter((r: any) => r.status === "Failed").length,
         avgLatency: latencyStats.avg,
         minLatency: latencyStats.min,
         maxLatency: latencyStats.max,
@@ -335,7 +346,7 @@ cli.command(
         maxTCP: tcpStats.max,
         medianTCP: tcpStats.median,
         successRate: results.length
-          ? (results.filter((r) => r.status === "Success").length /
+          ? (results.filter((r: any) => r.status === "Success").length /
               results.length) *
             100
           : 0,
