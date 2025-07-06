@@ -26,12 +26,12 @@
     "typescript": "^5.1.6"
   },
   "license": "MIT OR Apache-2.0",
-  "homepage": "https://github.com/filecoin-project/retrieval-tester#readme",
+  "homepage": "https://github.com/Supercoolkayy/retrieval-tester#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/filecoin-project/retrieval-tester.git"
+    "url": "https://github.com/Supercoolkayy/retrieval-tester.git"
   },
   "bugs": {
-    "url": "https://github.com/filecoin-project/retrieval-tester/issues"
+    "url": "https://github.com/Supercoolkayy/retrieval-tester/issues"
   }
 }

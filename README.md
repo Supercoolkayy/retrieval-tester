@@ -5,7 +5,7 @@ A robust, extensible CLI tool for benchmarking and comparing Filecoin/IPFS HTTP 
 ## Features
 
 - Test 10+ Filecoin/IPFS HTTP gateways in parallel
-- Advanced metrics: latency, download speed, total time, attempts, health score
+- Advanced metrics: latency, download speed, total time, DNS/TCP times, attempts, health score
 - Configurable concurrency, retries, and timeout
 - JSON and human-readable output formats
 - Per-endpoint error handling and summary statistics
@@ -64,13 +64,13 @@ node dist/index.js --cid <CID>
 
 ```bash
 # Basic usage (text output)
-npx ts-node src/index.ts --cid Qm...
+npx retrieval-tester --cid Qm...
 
 # JSON output
-npx ts-node src/index.ts --cid Qm... --format json > results.json
+npx retrieval-tester --cid Qm... --format json > results.json
 
 # Custom endpoints, concurrency, retries
-npx ts-node src/index.ts --cid Qm... --endpoints https://dweb.link https://ipfs.io --concurrency 8 --retries 3 --timeout 10000
+npx retrieval-tester --cid Qm... --endpoints https://dweb.link https://ipfs.io --concurrency 8 --retries 3 --timeout 10000
 ```
 
 ## Contributing
@@ -81,15 +81,16 @@ npx ts-node src/index.ts --cid Qm... --endpoints https://dweb.link https://ipfs.
 
 ## License
 
-MIT OR Apache-2.0 (see LICENSE)
+MIT OR Apache-2.0 (see [LICENSE](https://github.com/Supercoolkayy/retrieval-tester/blob/main/LICENSE))  
+© Abdulkareem Oyeneye (supercoolkay)
 
 ## 🚀 Beta Testing & Feedback
 
 This CLI is currently in **beta**.  
 We welcome your feedback, bug reports, and suggestions!
 
-- **Report issues or bugs:** [GitHub Issues](https://github.com/filecoin-project/retrieval-tester/issues)
-- **Suggest features:** [GitHub Discussions](https://github.com/filecoin-project/retrieval-tester/discussions)
+- **Report issues or bugs:** [GitHub Issues](https://github.com/Supercoolkayy/retrieval-tester/issues)
+- **Suggest features:** [GitHub Discussions](https://github.com/Supercoolkayy/retrieval-tester/discussions)
 - **Contact maintainers:** Open an issue or discussion on GitHub.
 
 Thank you for helping us improve!
