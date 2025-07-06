@@ -1,0 +1,12 @@
+src/
+node_modules/
+website/
+*.log
+tsconfig.json
+.git
+.gitignore
+.vscode/
+*.ts
+*.tsx
+./demo_script.txt
+*txt

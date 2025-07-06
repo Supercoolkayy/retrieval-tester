@@ -1,0 +1,47 @@
+# Filecoin Retrieval Tester CLI - Milestone KPI Summary
+
+## Milestone 1: Project Initialization & Planning
+- Defined project scope: CLI tool for benchmarking Filecoin/IPFS HTTP gateways.
+- Outlined requirements and success criteria.
+- Set up project repository and initial documentation.
+
+## Milestone 2: CLI Core Functionality
+- Implemented core CLI logic in TypeScript.
+- Added support for testing a CID across multiple endpoints in parallel.
+- Measured latency, download speed, and reliability for each endpoint.
+- Output results in both text and JSON formats.
+
+## Milestone 3: User Experience & Options
+- Integrated `yargs` for advanced argument parsing and help output.
+- Added options for endpoints, concurrency, retries, timeout, format, and verbose mode.
+- Improved CLI output with color and summary statistics using `chalk`.
+- Provided clear error messages and usage examples.
+
+## Milestone 4: Packaging & Distribution
+- Configured `package.json` with a `bin` field for global/npx usage.
+- Ensured TypeScript build outputs to the correct location.
+- Published package to npm for easy access via `npx retrieval-tester`.
+
+## Milestone 5: Documentation & Demo
+- Created detailed README and usage instructions.
+- Added example commands and sample output.
+- Developed a demo script for presentations and onboarding.
+
+## Milestone 6: Website & Branding
+- Built a React-based landing page with `framer-motion` and `react-icons`.
+- Designed a modern, informative homepage explaining the tool, usage, and features.
+- Provided sample CLI output and clear instructions for new users.
+
+## Milestone 7: Quality & Community
+- Open sourced the project on GitHub.
+- Added contribution guidelines and issue templates.
+- Encouraged feedback and community involvement.
+
+---
+
+**KPI Summary:**  
+- CLI tool is fully functional and user-friendly.
+- Supports all major options and outputs.
+- Available globally via `npx` with zero install.
+- Comprehensive documentation and web presence.
+- Ready for community adoption and further contributions.
