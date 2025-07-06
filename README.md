@@ -4,7 +4,7 @@ A robust, extensible CLI tool for benchmarking and comparing Filecoin/IPFS HTTP 
 
 ---
 
-## 📺 Demo
+## Demo
 
 You can watch a demo of the CLI in action below:
 
@@ -15,7 +15,7 @@ You can watch a demo of the CLI in action below:
 
 </details>
 
-> ℹ️ If the video above does not play, try downloading it directly [here](demo_video.mp4).
+> If the video above does not play, try downloading it directly [here](demo_video.mp4).
 
 ---
 
