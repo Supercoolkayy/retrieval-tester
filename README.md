@@ -2,6 +2,23 @@
 
 A robust, extensible CLI tool for benchmarking and comparing Filecoin/IPFS HTTP gateway endpoints. Designed for Filecoin developers, node operators, and researchers to measure retrieval performance, reliability, and health across multiple endpoints.
 
+---
+
+## 📺 Demo
+
+You can watch a demo of the CLI in action below:
+
+<details>
+<summary>Click to play demo video</summary>
+
+![Demo Video](demo_video.mp4)
+
+</details>
+
+> ℹ️ If the video above does not play, try downloading it directly [here](demo_video.mp4).
+
+---
+
 ## Features
 
 - Test 10+ Filecoin/IPFS HTTP gateways in parallel
