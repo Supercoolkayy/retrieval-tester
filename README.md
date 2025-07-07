@@ -11,11 +11,11 @@ You can watch a demo of the CLI in action below:
 <details>
 <summary>Click to play demo video</summary>
 
-![Demo Video](demo_video.mp4)
+![Demo Video](https://drive.google.com/file/d/1P_gkO_1EHbEaaaOVKu22T407iQb_N0oq/view?usp=drivesdk)
 
 </details>
 
-> ℹ️ If the video above does not play, try downloading it directly [here](demo_video.mp4).
+> ℹ️ If the video above does not play, try downloading it directly [here](https://drive.google.com/file/d/1P_gkO_1EHbEaaaOVKu22T407iQb_N0oq/view?usp=drivesdk).
 
 ---
 
